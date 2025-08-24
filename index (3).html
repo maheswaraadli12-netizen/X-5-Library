@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-5 Library</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .book-card {
+            transition: all 0.3s ease;
+        }
+        .book-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .footer-button {
+            transition: all 0.2s ease;
+        }
+        .footer-button:hover {
+            transform: translateY(-2px);
+        }
+        .nav-button.active {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        .pdf-page {
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .pdf-controls {
+            position: sticky;
+            top: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .page-container {
+            padding: 20px;
+            min-height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .page-content {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .cover-upload {
+            position: relative;
+            cursor: pointer;
+        }
+        .cover-upload:hover .upload-overlay {
+            opacity: 1;
+        }
+        .upload-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .upload-icon {
+            color: white;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div id="app"></div>
+
+    <script>
+        // Mock data for books - all requested books
+        const bookList = [
+            {
+                id: 1,
+                title: "Perahu Kertas",
+                image: "https://i.imgur.com/l8IEttk.jpeg",
+                genre: "Fiksi",
+                type: "Novel",
+                chapters: 12,
+                status: "Selesai",
+                description: "Kisah cinta yang indah antara Kugy dan Keenan, dua sahabat yang tumbuh bersama dan menemukan makna persahabatan, cinta, dan impian melalui buku-buku dan ilustrasi yang mereka ciptakan bersama.",
+                tags: ["Romance", "Friendship", "Dreams", "Art"],
+                firstChapter: "Chapter 1",
+                latestChapter: "Chapter 12",
+                addedDate: "2024-01-15",
+                views: 25000,
+                author: "Dee Lestari",
+                rating: 4.8,
+                totalPages: 440,
+                language: "Indonesia",
+                publicationYear: 2008,
+                publisher: "Bentang Pustaka"
+            },
+            {
+                id: 2,
+                title: "Pada Senja yang Membawamu Pergi",
+                image: "https://i.imgur.com/e0CmFeG.jpeg",
+                genre: "Fiksi",
+                type: "Novel",
+                chapters: 10,
+                status: "Selesai",
+                description: "Sebuah kisah tentang penantian, cinta, dan perjalanan hidup yang penuh makna. Melalui senja yang membawa pergi, kita belajar bahwa hidup adalah rentetan penantian yang pada akhirnya akan terbayar pada waktunya.",
+                tags: ["Romance", "Life", "Waiting", "Journey"],
+                firstChapter: "Chapter 1",
+                latestChapter: "Chapter 10",
+                addedDate: "2024-01-20",
+                views: 18000,
+                author: "Boy Candra",
+                rating: 4.7,
+                totalPages: 240,
+                language: "Indonesia",
+                publicationYear: 2016,
+                publisher: "GagasMedia"
+            },
+            {
+                id: 3,
+                title: "Aku, Kisahku, dan Cita-Cita untuk Negeriku",
+                image: "https://i.imgur.com/rDnRjwE.jpeg",
+                genre: "Non-Fiksi",
+                type: "Buku",
+                chapters: 8,
+                status: "Selesai",
+                description: "Kisah inspiratif tentang perjalanan hidup seorang anak muda yang tumbuh dari ketiadaan menjadi pribadi yang memiliki cita-cita besar untuk negerinya. Buku ini menggambarkan perjuangan, harapan, dan komitmen terhadap pembangunan bangsa.",
+                tags: ["Inspirational", "Biography", "Patriotism", "Education"],
+                firstChapter: "Pengantar",
+                latestChapter: "Epilog",
+                addedDate: "2024-01-22",
+                views: 12000,
+                author: "Reza Kurniawan Harnandika",
+                rating: 4.6,
+                totalPages: 140,
+                language: "Indonesia",
+                publicationYear: 2018,
+                publisher: "Gramedia Pustaka Utama"
+            },
+            {
+                id: 4,
+                title: "Berani Bahagia",
+                image: "https://i.imgur.com/1sNtJui.jpeg",
+                genre: "Non-Fiksi",
+                type: "Buku",
+                chapters: 7,
+                status: "Selesai",
+                description: "Sebuah panduan untuk menemukan kebahagiaan sejati dalam hidup. Buku ini mengajak pembaca untuk berani menghadapi ketakutan, keluar dari zona nyaman, dan menemukan makna hidup melalui perjalanan pribadi yang penuh tantangan.",
+                tags: ["Self-help", "Happiness", "Motivation", "Personal Growth"],
+                firstChapter: "Pendahuluan",
+                latestChapter: "Penutup",
+                addedDate: "2024-01-23",
+                views: 15000,
+                author: "Syaugi Arr",
+                rating: 4.5,
+                totalPages: 305,
+                language: "Indonesia",
+                publicationYear: 2017,
+                publisher: "Mizan Publishing"
+            },
+            {
+                id: 5,
+                title: "Laut Bercerita",
+                image: "https://i.imgur.com/hIvBGPX.jpeg",
+                genre: "Fiksi",
+                type: "Novel",
+                chapters: 9,
+                status: "Selesai",
+                description: "Sebuah novel yang mengungkap kisah kelam masa lalu melalui ingatan seorang anak terhadap kakaknya yang menghilang. Dengan latar belakang sejarah yang kelam, buku ini menyampaikan pesan tentang pentingnya mengingat, mengungkap kebenaran, dan memperjuangkan keadilan.",
+                tags: ["Drama", "History", "Family", "Justice"],
+                firstChapter: "Pengantar",
+                latestChapter: "Epilog",
+                addedDate: "2024-01-24",
+                views: 21000,
+                author: "Leila S. Chudori",
+                rating: 4.9,
+                totalPages: 400,
+                language: "Indonesia",
+                publicationYear: 2017,
+                publisher: "Gramedia Pustaka Utama"
+            }
+        ];
+
+        // PDF content from Perahu Kertas
+        const perahuKertasContent = [
+            "Hari ini aku j uga bermimpi.Aku bermimpi bisa selamanya menulis dongeng.Aku bermimpi bisa berbagi dunia itu bersama kamu dan ilustrasimu.Bersama kamu, aku tidak takut lagi menj adi pe-mimpi.Bersama kamu, aku ingin memberi judul bagi buku ini.Karena hanya bersama kamu, segalanya terasa dekat, segala sesuatunya ada, segala sesuatunya benar. Dan Bumi hanyalah sebutir debu di bawah telapak kaki kita.Selamat Ulang Tahun.Keenan! Noni langsung menduganya. Tak mungkin salah lagi. Buku ini pasti diperuntukkan bagi Keenan. Noni me-lihat tanggal yang tertera di sudut kanan atas: 31 Januari 2000.",
+            "Tangannya yang memegang kartu itu mendadak melemas.Noni cukup mengenal Kugy untuk mengetahui kedalaman kata-kata yang ditulisnya, perasaan sedahsyat apa yang men-dorongnya. Pelan-pelan, Noni merangkaikan semuanya.Pelan-pelan, Noni tahu, mengapa dulu Kugy selalu meng-hindar, mengapa Kugy tidak datang ke pestanya, mengapa Kugy akhirnya memilih pisah dengan Ojos, mengapa Kugy seperti orang tertekan. Pelan-pelan, ia paham. Semuanya.Diselipkannya lagi kartu itu dengan hati-hati. Noni sam-pai ingin menangis karena miris. Tiga tahun bukanlah waktu yang singkat untuk memendam dan diam.313",
+            "Teman-teman di Truedee: Ummy, Sigit, Ruri, Endah, Aris, Syaeful, dan Yeni. Tim “peneliti” naskah: Jenny Jusuf— yang sudah membantu proof reading, dan Hermawan Aksan—terima kasih banyak atas editan dan sarannya yang cermat. Tim desain yang tetap setia membantu lahirnya buku-buku saya: Fahmi beserta Kebun Angan, dan Evi Irevitari.viiiMitra penerbit yang telah sudi bersinergi dalam proyek ini, Bentang Pustaka: Salman, Putri, Mas Gangsar, dan se-mua staf.",
+            "“Dan... karena kamu sudah berhasil menebak judul lu-kisan ini, saya mau kasih hadiah.” Air muka Keenan kembali menghangat.47“Nggak percaya kalau kita bisa telepati, ya? Aku tuh bu-kan nebak, tauk... tapi...” celotehan Kugy tahu-tahuberhenti. Di hadapannya terbentang lembar pertama buku sketsa yang dibuka Keenan. Perlahan, Kugy meraih buku itu.Membuka lembar demi lembar. “Ini...?”Keenan menunjuk satu per satu sketsa tersebut. “Pa-ngeran Lobak... Peri Seledri... Wortelina... Nyi Kunyit...Joni Gorong... Hopa-Hopi... dan ini lembah tempat mereka",
+            "Napas Keenan sontak tertahan melihat gerbang kayu itu lagi. Rumahnya yang baru. Ia tak bisa membendung senyum yang menyungging otomatis di mulutnya.Pak Wayan tidak melebih-lebihkan ketika mengatakan bahwa seluruh keluarganya telah menunggu. Lagi-lagi, Keenan harus terenyak haru ketika melihat keluarga Pak Wayan berkumpul di teras saat mobil mereka tiba di ha-laman depan kompleks itu.200“Beli25! Apa kabar?",
+            "“Mungkin ini saja yang sebaiknya kamu bawa, vent3,” Oma menyerahkan dua buah buku bertuliskan 2500 Latihan Soal UMPTN, “supaya jij 4 bisa belajar di pesawat.” “Ja5, Oma.” Keenan menyambut dua buku tebal itu dan berencana untuk meninggalkannya di kolong tempat tidur begitu Oma keluar kamar nanti.",
+            "Apalagi kalo cuma gara-gara keasyikan browsing. Kata Kugy Nugroho, tidur yuk cepat tidur. Jangan lupa baca buku dongeng dulu. Dikasih buat dibaca, tauk! Met bobo, Sayang. See you tomorrow.Remi tertawa kecil membacanya. Mematikan laptop yang sedari tadi memang dipakainya untuk browsing. Iseng, ia mengambil buku dongeng buatan Kugy. Satu-satunya buku dongeng yang ia punya.Halaman demi halaman, Remi pun berdecak kagum. Tre-nyuh. Ilustrasi yang indah. Cerita yang hidup. Dan betapa Kugy membuat setiap jengkal dari buku itu dengan cinta.Remi bisa merasakannya.",
+            "?“Kapan mulai beres-beres, Gy? Buku-buku lu yang ba-nyak banget itu dipaket aja ke Bandung, nggak usah bawa sendiri. Bagasi mobilnya Eko kan kecil, nanti nggak bakal muat. Lu bawa baju-baju aja, ya? Tiket kereta api udah pe-san, belum? Lagi penuh lho. Ntar terpaksa beli di calo. Sa-yang duit.” “Non, lu tuh lebih cerewet dari tiga nyokap gua dijadiin satu. Serius.” “Minggu depan, pokoknya nggak mau tahu, lu harus udah sampai di Bandung. Mobil Eko udah gua suruh masuk bengkel dulu biar nggak mogok pas ngejemput lu ke stasiun.Habis itu kita langsung keliling buat belanja kebutuhan lu.",
+            "3. Mother Alien 23 4. Lingkaran Suci 31 5. Sebatang Pisang Susu 41 6. Hunusan Pedang Es 49 7. Bulan, Perj alanan, Kita 57 8. Memulai dari yang Kecil 65 9. Proyek Percomblangan 72 10. Kurator Muda 80 11. Sakola Alit 88 12. Jenderal Pilik& Pasukan Alit 97 13. Rencana Besar Wanda 106 14. Buku Harta Karun 116 15. Mencari Ketulusan 126 16. Salah Berharap 137 17. Tiga Kata Saj a 145 18. Kepergian dan Kehilangan 154 19. Tragedi Pesta Noni 164 20. Kebohongan Gigantis 172 21. Hampa yang Menyakitkan 180 22. Pulang ke Ubud 190 23. Menangkap Bintang 198 24. Pembeli Pertama 207 25. Hadiah dari Hati 216 26. Lembaran Baru 225",
+            "vi27. Janj i Adalah Janj i 234 28. AdVocaDo 243 29. Bumi pun Berputar 252 30. Agen Non-Aquarius 262 31. Arisan Toilet 272 32. Ninj a Asmara 282 33. Kekuatan Mencinta 293 34. Malam Terakhir di Uj ung Tahun 304 35. Pangeran Sej ati 316 36. Reuni Kelompencapir 325 37. Tabir yang Tak Bisa Ditembus 336 38. Penculikan Paling Indah 345 39. Karya Bersama 355 40. Menemukan Oasis 365 41. Buku dan Pameran 374 42. Kastil yang Masih Berdiri Tegak 385 43. Cincin Dalam Kotak Perak 395 44. Cinta Tak Beruj ung 406 45. Bayangan Itu Punya Nama 414 46. Hati Tak Perlu Memilih 423 Epilog 433",
+            "?” Mantap, Kugy akhirnya ber-suara.Jakarta, April 2003...Dibutuhkan seminggu untuk Kugy menyelesaikan setiap seri Jenderal Pilik dan Pasukan Alit. Dan itu mengharuskan Keenan untuk menjemput naskah baru setiap minggunya.Khusus untuk serial satu ini, Kugy menulis dengan tangan dalam buku tulis, sebagaimana yang dilakukannya di Sakola Alit dulu. Baru setelah itu, Keenan menyuruh sekretarisnya359untuk mentranskrip naskah Kugy ke dalam dokumen kom-puter.",
+            "Ami kebagian di saung besar, Ical mendapat tempat di se-buah saung agak kecil yang terpisah sekitar seratus meter, dan Kugy kebagian di bawah pohon.Kugy pun bergegas menyiapkan ‘‘ruang kelas’’-nya. Meng-gelar tikar plastik untuk mereka semua duduk, menyandar-kan papan tulisnya di pohon, dan membagikan buku serta alat tulis. Di hadapannya kini sudah ada lima anak dari mu-lai umur empat sampai sembilan tahun. Semuanya mengaku tidak bisa membaca dan menulis. Sejenak Kugy menghela napas, mereka-reka harus memulai dari mana.10 Bagaimana.11 Sehat.12 Betul.13 Silakan, silakan.14 Oleh Bapak.90",
+            "proyek ini adalah ketika tahu bahwa kamu, pencipta dan penulis serial Jenderal Pilik dan Pasukan Alit, akan ber-kolaborasi langsung dengan saya. Saya sempat kasih lihat juga foto-foto lukisan Jenderal Pilik yang baru dan sebagian naskah kamu. Pak Ginanjar punya ide untuk bikin dua ma-cam buku. Yang satu untuk konsumsi umum, formatnya se-perti buku cerita biasa, ilustrasinya akan dibuat lebih ri-ngan—mungkin saya akan coba pakai cat air. Nah, yang satu lagi formatnya buku seni, bentuknya coff ee table book, yang isinya adalah cerita kamu plus lukisan saya dari awal sampai yang terbaru. Rangkaian pameran bakal dibuat untuk mem-promosikan buku ini. Dan, Gy, ini akan menjadi pameran",
+            "tunggal saya yang pertama...”“Dan peluncuran bukuku yang pertama,” Kugy berkata, tercekat.“No,” Keenan menggeleng, “dua buku sekaligus, remem-ber? Dua buku kamu akan diluncurkan berbarengan.” Kugy gantian menghela napas panjang. Semua ini rasanya sukar dipercaya. Terlalu indah untuk dipercaya.“Minggu depan, Pak Ginanjar ingin ketemu kamu. Kita nanti pergi barengan, ya?” lalu Keenan mengangkat cangkir ocha-nya, “cheers, Gy. Untuk Pilik.”384“Untuk Pilik,” Kugy tersenyum hangat, “dan... untukkita.” “Untuk kita.”385",
+            "Sej ak kamu membuatkanku ilustrasi-ilustrasi ini, aku merasa mimpiku semakin dekat.Belum pernah sedekat ini.Hari ini aku j uga bermimpi.Aku bermimpi bisa selamanya menulis dongeng.Aku bermimpi bisa berbagi dunia itu bersama kamu dan ilustrasimu.Bersama kamu, aku tidak takut lagi menj adi pe-mimpi.Bersama kamu, aku ingin memberi judul bagi buku ini.Karena hanya bersama kamu, segalanya terasa dekat, segala sesuatunya ada, segala sesuatunya benar. Dan Bumi hanyalah sebutir debu di bawah telapak kaki kita.Selamat Ulang Tahun.Keenan!"
+        ];
+
+        // PDF content from Pada Senja yang Membawamu Pergi
+        const padaSenjaContent = [
+            "eo ala penantian akan terbayar pada waktunya. Kisah yang ada di buku inijuga melalui proses yang panjang. Butuh waktu yang cukup lama. Namun， sesungguhnya hidup adalah rentetan-rentetan penantian. Tak ada satu orang pun yang bisa meloloskan diri darii penantian-penantian dalam hidupnya.Terima kasih kepada Allah swt yang sampai saat ini masih memberi kesempatan dalam banyak hal. Untuk kedua orangtua saya， Mahyunil dan Ema； adik saya， Harina Putri Kesuma， juga seseorang terpenting yang enggan disebutkan namanya. Terima kasih atas dukungan untuk semua ini.",
+            "Gagasmedia dan tim. Kak Idha-editor-yang telah membantu menyunting naskah ini. Terima kasih sudah memoles menjadi buku yang layak untuk dibaca. Juga untuk sahabat sava Andi Has di Makassar. Teman-teman UKKPK UNP. Serta semua orang yang tak tersebutkan namanya. Yang secara langsung atau pun tidak telah memberi dukungan kepada saya selama ini.Untukkamu yang bersedia memiliki dan membaca buku ini. Selamat membaca. Semoga kamu terhibur.Padang， Juli 2016.BOY CANDRA",
+            "Aku langsung berangkat meninggalkan tempat kos.Sampai di perpustakaan sudah agak siang. Hanya beberapa menit， jam istirahat siang sudah datang.\"Kami buka lagi pukul 13.15 WIB， ya!\"Suara petugas perpustakaan memberi isyarat untuk keluar. Khusus un-tuk ruang kumpulan skripsi ini memang memiliki jam istirahat karena petugasnya hanya satu orang. Semen-tara， perpustakaan di ruangan buku umum memang tetap buka tanpa jam istirahat siang.Aku memilih untuk mencukupkan hari ini， menuju Kafe Uni Eva. Memesan makanan seperti biasa， lalu menikmatinya sendiri. Kali ini benar-benar sendiri. Tidak"
+        ];
+
+        // PDF content from Aku, Kisahku, dan Cita-Cita untuk Negeriku
+        const akuKisahkuContent = [
+            "Pribadi yang pendiam dan pemalu, menyebabkan aku kurang mendapat begitu banyak teman. Yang aku tahu ketika itu, aku harus terus belajar. Ya, diriku yang polos dan belum ‘diracuni’ oleh dunia, itulah anak-anak. Di masa ini justru aku lebih dekat dengan kakak sepupuku, namanya Adi Aziz, atau lebih dikenal dengan Ade. Usianya 5 tahun lebih tua dariku.",
+            "138 Aku, Kisahku dan Cita-Cita untuk NegerikuKontributorReza Kurniawan HarnandikaLaki-laki kelahiran Jakarta, 6 Oktober 1994 ini tengah menyelesaikan studi S-1 nya di jurusan Rekayasa Infrastruktur Lingkungan, Fakultas Teknik Sipil dan Lingkungan angkatan 2013. Saat buku ini disusun, Reza sedang menjalani student exchange di Jepang.Email: cloudyreza@gmail.comNi Luh Putu Lilis Sinta Setiawati"
+        ];
+
+        // PDF content from Berani Bahagia
+        const beraniBahagiaContent = [
+            "PEMUDA： Ya. Tapi aku tidak memuji mereka semua tanpa per-timbangan. Aku memuji mereka sesuai dengan takaran upaya dan kesuksesan mereka. Karena kalau aku melakukan sebalik-nya， pujian itu hanya akan menjadi kebohongan. Anak nakal yang menulis laporan buku itu sekarang menjadi kutu buku. Yang dia lakukan sekarang hanyalah membaca dan membaca serta menulis esai tentang buku-buku yang dibacanya.Sung-guh mengagumkan bukan， saat kita melihat bagaimana buku dapat membuka dunia seseorang? Kuduga tak lama lagi ru-ang perpustakaan di sekolah kami tidak akan lagi memuas-kannya， dan dia akan mulai pergi ke perpustakaan di universi-tas. Perpustakaan tempatku dulu bekerja!",
+            "Dan meskipun kita mungkin telah mengumpulan keberanian serta mengambil langkah pertama， hal itu tidak ada gunanya kalau kita hanya berhenti di situ. Ambillah langkah berikutnya dan langkah berikutnya sesudah itu. Akumulasi langkah-lang-kah kecil tanpa henti itulah yang kita sebut perjalanan.Dengan memegang peta dan kompas， jalan seperti apa yang akan Anda lalui mulai sekarang? Atau apakah Anda akan tetap diam di tempat? Kalau buku ini bisa menjadi se-macam penolong bagi Anda， dalam memperoleh keberani-an untuk berbahagia， bagi saya tidak ada hal lain yang lebih menggembirakan. (syaugy_arr)",
+            "mendapati beberapa buku yang dimilikinya， termasuk satu buku yang baru dia baca minggu sebelumnya. Sambil memandang sayu ke rak buku yang memenuhi dinding kamar itu， sang pemuda mendesah dalam-dalam. Aku tidok boleh merasa terlalu nyaman disini. Aku harus terus melangkah maju."
+        ];
+
+        // PDF content from Laut Bercerita
+        const lautBerceritaContent = [
+            "Kepada Bapak， katakan padanya， sumbangkanlah buku-buku milikku ke perpustakaan sekolah yang membutuhkannya. Isilah rak bukuku dengan buku-bukumu yang baru， dengan demikian kalian bisa berdiskusi tentang buku-buku baru karya para sastrawan yang belum sempat kita sentuh karena sesungguhnya masih berjuta-juta karya di dunia yang harus kita bisa hayati. Nikmatilah. Sampaikan padanya aku akan selalu memberi pesan melalui alam： ikan， dedaunan， dan kuncup bunga yang belum mekar.",
+            "mati meski sudah diganggu angin. Kepak sayap mereka terdengar lebih keras meski kedua ikan itu tetap beterbangan agak jauh dari kami. Sekali lagi， kepakan itu terdengar penuh ritme： L.A.U.T. B.E.R.C.E.R.I.T.A.Tidak. Ini harus kusimpan sendiri sampai aku yakin. Aku harus kembali lagi ke sini sendiri.",
+            "?Apa ndak bisa mendiskusikan buku-buku yang tidak ter-larang? Kan banyak， Mas， buku-buku lain...'Ibu mencoba bertanya dengan nada ringan sambil membantu Mbak Mar men-cuci piring. Aku menghampiri Ibu dan mulai mengelap piring， seolah-olah dengan melakukan pekerjaan domestik sederhana itu akan meneduhkan suasana.\"Tentu， Bu. Kami tak hanya mendiskusikan buku Pak Pram. Kami diskusi tentang puisi Rendra...'Asmara tertawa kecil. Aku memelototi Asmara yang mere-bahkan tubuhnya di sofa panjang.",
+            "KAMARKU di rumah orangtuaku selalu saja sama. Di Solo maupun di Jakarta， Ibu selalu membantu menyusun buku-buku yang kukoleksi sejak sekolah dasar hingga SMA di rak buku yang menutup dinding kamar. Sejak kuliah， aku lebih sering membiarkan bukuku di tempat kos， dan kini betebaran di kamarku di Rumah Hantu Seyegan. Buku-buku masa kanak-kanak hingga remaja semua tersusun rapi di rak demi rak yang dibangun di seluruh dinding hingga mencapai langit-langit kamar. Semua buku-buku sastra yang sudah kulalap sejak aku masih di sekolah dasar hingga SMA. Seluruh komik Mahabharata sejak leluhur hingga",
+            "menyebabkan buku terlihat seperti baru ditumpahi segelas kopi. Sedangkan Ibu cenderung meletakkan buku-buku secara vertikal karena terlihat lebih rapi. Di sana， di rak sebelah kanan atas， tampaknya Ibu sengaja meletakkan buku-buku klasik sastra Rusia yang diterjemahkan ke dalam bahasa Inggris dan Indonesia， dari Anton Chekov hingga Dostoyevsky； juga karya sastrawan Prancis seperti Victor Hugo dan Alexandre Dumas， lalu karya sastrawan Amerika dan Inggris seperti Mark Twain， Louisa May Alcott， dan Charles Dickens. Aku menatap buku-buku yang ikut membesarkan rohaniku itu.",
+            "mengapa Bapak bisa berjam-jam di kamar ini membersihkan dan menyisiri semua buku-buku Mas Laut. Bapak bahkan merogoh-rogoh ke bagian belakang deretan buku sastra Indonesia. Ternyata Mas Laut juga menyimpan beberapa buku fotokopi di balik tumpukan buku-buku resmi. Bapak mengeluarkan beberapa bab fotokopi Bumi Manusia dan Jejak Langkah.",
+            "Anjani menggamit lenganku dan mengajak aku berjalan bergabung dengan kawan-kawan lain. Insiden tiga lalat yang membuntuti kami itu segera kami laporkan pada Kinan. Sudah kuduga Kinan tak terkejut mendengar cerita kami karena dia sudah memperhatikan gerak-gerik para intel. \"Ada beberapa yang duduk di warung， dan ada yang nongkrong di mobil hitam di sana，'katanya menunjuk dengan tenang..\"Santai saja， Laut. Kita jalan terus.\"",
+            "Buku ini， buku karya Julia Alvarez ini adalah salah satu reko-mendasi Mas Laut yang belum aku sentuh. Buku itu tertinggal di kamar Mas Laut， dan hidupku tergilas oleh kesibukan tahun menjelang keberangkatanku ke Pamakayo. Baru saja aku membuka halaman pertama， aku mencium harum bawang putih dari dapur."
+        ];
+
+        // Mock data for chapters
+        const chapters = [
+            { id: 1, bookId: 1, title: "Chapter 1: Awal yang Baru", date: "23/11/2024", views: 18000 },
+            { id: 2, bookId: 1, title: "Chapter 2: Pertemuan Tak Terduga", date: "23/11/2024", views: 17500 },
+            { id: 3, bookId: 1, title: "Chapter 3: Persahabatan yang Tumbuh", date: "23/11/2024", views: 17000 },
+            { id: 4, bookId: 1, title: "Chapter 4: Impian dan Harapan", date: "23/11/2024", views: 16800 },
+            { id: 5, bookId: 1, title: "Chapter 5: Ujian Cinta", date: "23/11/2024", views: 16700 },
+            { id: 6, bookId: 1, title: "Chapter 6: Kesulitan dan Tantangan", date: "23/11/2024", views: 16600 },
+            { id: 7, bookId: 1, title: "Chapter 7: Keputusan yang Sulit", date: "23/11/2024", views: 16500 },
+            { id: 8, bookId: 1, title: "Chapter 8: Masa Depan yang Tak Pasti", date: "23/11/2024", views: 16468 },
+            { id: 9, bookId: 1, title: "Chapter 9: Perjalanan Menuju Diri Sendiri", date: "23/11/2024", views: 16449 },
+            { id: 10, bookId: 1, title: "Chapter 10: Pilihan Hati", date: "23/11/2024", views: 16501 },
+            { id: 11, bookId: 1, title: "Chapter 11: Pengakuan", date: "23/11/2024", views: 16142 },
+            { id: 12, bookId: 1, title: "Chapter 12: Akhir yang Baru", date: "23/11/2024", views: 15565 },
+            { id: 13, bookId: 2, title: "Chapter 1: Senja Pertama", date: "23/11/2024", views: 15000 },
+            { id: 14, bookId: 2, title: "Chapter 2: Menunggu", date: "23/11/2024", views: 14500 },
+            { id: 15, bookId: 2, title: "Chapter 3: Perjalanan Hati", date: "23/11/2024", views: 14200 },
+            { id: 16, bookId: 2, title: "Chapter 4: Penantian", date: "23/11/2024", views: 14000 },
+            { id: 17, bookId: 2, title: "Chapter 5: Senja Kedua", date: "23/11/2024", views: 13800 },
+            { id: 18, bookId: 2, title: "Chapter 6: Kepulangan", date: "23/11/2024", views: 13500 },
+            { id: 19, bookId: 2, title: "Chapter 7: Perpisahan", date: "23/11/2024", views: 13200 },
+            { id: 20, bookId: 2, title: "Chapter 8: Senja Terakhir", date: "23/11/2024", views: 13000 },
+            { id: 21, bookId: 2, title: "Chapter 9: Kenangan", date: "23/11/2024", views: 12800 },
+            { id: 22, bookId: 2, title: "Chapter 10: Akhir yang Baru", date: "23/11/2024", views: 12500 },
+            { id: 23, bookId: 3, title: "Chapter 1: Pengantar", date: "23/11/2024", views: 11000 },
+            { id: 24, bookId: 3, title: "Chapter 2: Masa Kecil", date: "23/11/2024", views: 10800 },
+            { id: 25, bookId: 3, title: "Chapter 3: Pendidikan", date: "23/11/2024", views: 10500 },
+            { id: 26, bookId: 3, title: "Chapter 4: Perjalanan Kuliah", date: "23/11/2024", views: 10200 },
+            { id: 27, bookId: 3, title: "Chapter 5: Pertukaran Pelajar", date: "23/11/2024", views: 10000 },
+            { id: 28, bookId: 3, title: "Chapter 6: Kembali ke Negeri", date: "23/11/2024", views: 9800 },
+            { id: 29, bookId: 3, title: "Chapter 7: Kontribusi", date: "23/11/2024", views: 9500 },
+            { id: 30, bookId: 3, title: "Chapter 8: Epilog", date: "23/11/2024", views: 9200 },
+            { id: 31, bookId: 4, title: "Chapter 1: Pendahuluan", date: "23/11/2024", views: 13000 },
+            { id: 32, bookId: 4, title: "Chapter 2: Zona Nyaman", date: "23/11/2024", views: 12500 },
+            { id: 33, bookId: 4, title: "Chapter 3: Ketakutan", date: "23/11/2024", views: 12000 },
+            { id: 34, bookId: 4, title: "Chapter 4: Keberanian", date: "23/11/2024", views: 11800 },
+            { id: 35, bookId: 4, title: "Chapter 5: Perubahan", date: "23/11/2024", views: 11500 },
+            { id: 36, bookId: 4, title: "Chapter 6: Pertumbuhan", date: "23/11/2024", views: 11200 },
+            { id: 37, bookId: 4, title: "Chapter 7: Penutup", date: "23/11/2024", views: 11000 },
+            { id: 38, bookId: 5, title: "Chapter 1: Pengantar", date: "23/11/2024", views: 18000 },
+            { id: 39, bookId: 5, title: "Chapter 2: Kenangan", date: "23/11/2024", views: 17500 },
+            { id: 40, bookId: 5, title: "Chapter 3: Keluarga", date: "23/11/2024", views: 17000 },
+            { id: 41, bookId: 5, title: "Chapter 4: Perpustakaan", date: "23/11/2024", views: 16800 },
+            { id: 42, bookId: 5, title: "Chapter 5: Kehilangan", date: "23/11/2024", views: 16500 },
+            { id: 43, bookId: 5, title: "Chapter 6: Pencarian", date: "23/11/2024", views: 16200 },
+            { id: 44, bookId: 5, title: "Chapter 7: Kebenaran", date: "23/11/2024", views: 16000 },
+            { id: 45, bookId: 5, title: "Chapter 8: Keadilan", date: "23/11/2024", views: 15800 },
+            { id: 46, bookId: 5, title: "Chapter 9: Epilog", date: "23/11/2024", views: 15500 }
+        ];
+
+        // State variables
+        let currentView = 'home';
+        let selectedBook = null;
+        let selectedChapter = null;
+        let viewMode = 'latest';
+        let filterGenre = '';
+        let filterType = 'All';
+        let searchQuery = '';
+        let bookmarks = [1, 2, 3, 4, 5];
+        let history = [
+            {
+                bookId: 1,
+                bookTitle: "Perahu Kertas",
+                chapter: "Chapter 3: Persahabatan yang Tumbuh",
+                lastRead: new Date().toLocaleString(),
+                progress: '30%'
+            },
+            {
+                bookId: 2,
+                bookTitle: "Pada Senja yang Membawamu Pergi",
+                chapter: "Chapter 1: Senja Pertama",
+                lastRead: new Date(Date.now() - 86400000).toLocaleString(),
+                progress: '25%'
+            },
+            {
+                bookId: 3,
+                bookTitle: "Aku, Kisahku, dan Cita-Cita untuk Negeriku",
+                chapter: "Chapter 1: Pengantar",
+                lastRead: new Date(Date.now() - 172800000).toLocaleString(),
+                progress: '20%'
+            },
+            {
+                bookId: 4,
+                bookTitle: "Berani Bahagia",
+                chapter: "Chapter 1: Pendahuluan",
+                lastRead: new Date(Date.now() - 259200000).toLocaleString(),
+                progress: '15%'
+            },
+            {
+                bookId: 5,
+                bookTitle: "Laut Bercerita",
+                chapter: "Chapter 1: Pengantar",
+                lastRead: new Date(Date.now() - 345600000).toLocaleString(),
+                progress: '10%'
+            }
+        ];
+        let currentImageIndex = 0;
+        let isReading = false;
+        let currentPage = 0;
+        let currentPdfContent = [];
+
+        // DOM Elements
+        const app = document.getElementById('app');
+
+        // Set current view
+        function setCurrentView(view) {
+            currentView = view;
+            currentPage = 0;
+            render();
+        }
+
+        // Set view mode
+        function setViewMode(mode) {
+            viewMode = mode;
+            filterGenre = '';
+            render();
+        }
+
+        // Set filter genre
+        function setFilterGenre(genre) {
+            filterGenre = genre;
+            viewMode = 'all';
+            render();
+        }
+
+        // Set filter type
+        function setFilterType(type) {
+            filterType = type;
+            render();
+        }
+
+        // Handle search input
+        function handleSearchInput(value) {
+            searchQuery = value;
+        }
+
+        // Handle search key press
+        function handleSearchKeyPress(event) {
+            if (event.key === 'Enter') {
+                handleSearch();
+            }
+        }
+
+        // Handle search
+        function handleSearch() {
+            if (searchQuery.trim()) {
+                setCurrentView('home');
+            }
+        }
+
+        // Handle book click
+        function handleBookClick(bookId) {
+            selectedBook = bookList.find(book => book.id === bookId);
+            setCurrentView('book');
+        }
+
+        // Handle bookmark
+        function handleBookmark(bookId) {
+            if (bookmarks.includes(bookId)) {
+                bookmarks = bookmarks.filter(id => id !== bookId);
+            } else {
+                bookmarks.push(bookId);
+            }
+            render();
+        }
+
+        // Remove bookmark
+        function removeBookmark(bookId) {
+            bookmarks = bookmarks.filter(id => id !== bookId);
+            render();
+        }
+
+        // Handle chapter click
+        function handleChapterClick(chapterId) {
+            selectedChapter = chapters.find(chapter => chapter.id === chapterId);
+            setCurrentView('chapter');
+            currentImageIndex = 0;
+            isReading = true;
+            
+            // Set the current PDF content based on the book
+            if (selectedBook.id === 1) {
+                currentPdfContent = perahuKertasContent;
+            } else if (selectedBook.id === 2) {
+                currentPdfContent = padaSenjaContent;
+            } else if (selectedBook.id === 3) {
+                currentPdfContent = akuKisahkuContent;
+            } else if (selectedBook.id === 4) {
+                currentPdfContent = beraniBahagiaContent;
+            } else if (selectedBook.id === 5) {
+                currentPdfContent = lautBerceritaContent;
+            }
+            
+            // Add to history
+            const historyItem = {
+                bookId: selectedBook.id,
+                bookTitle: selectedBook.title,
+                chapter: selectedChapter.title,
+                lastRead: new Date().toLocaleString(),
+                progress: '10%'
+            };
+            
+            // Check if this book and chapter combination already exists in history
+            const existingIndex = history.findIndex(item => 
+                item.bookId === selectedBook.id && item.chapter === selectedChapter.title
+            );
+            
+            if (existingIndex >= 0) {
+                // Update existing history item
+                history[existingIndex] = historyItem;
+            } else {
+                // Add new history item
+                history.push(historyItem);
+            }
+        }
+
+        // Handle back to home
+        function handleBackToHome() {
+            setCurrentView('home');
+            selectedBook = null;
+            selectedChapter = null;
+            isReading = false;
+        }
+
+        // Handle back to book
+        function handleBackToBook() {
+            setCurrentView('book');
+            isReading = false;
+        }
+
+        // Handle next image
+        function handleNextImage() {
+            if (currentImageIndex < bookPages.length - 1) {
+                currentImageIndex++;
+                render();
+            }
+        }
+
+        // Handle prev image
+        function handlePrevImage() {
+            if (currentImageIndex > 0) {
+                currentImageIndex--;
+                render();
+            }
+        }
+
+        // Set current image index
+        function setCurrentImageIndex(index) {
+            currentImageIndex = index;
+            render();
+        }
+
+        // Handle next page for PDF
+        function handleNextPage() {
+            if (currentPage < currentPdfContent.length - 1) {
+                currentPage++;
+                render();
+            }
+        }
+
+        // Handle previous page for PDF
+        function handlePrevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                render();
+            }
+        }
+
+        // Handle go to page for PDF
+        function handleGoToPage(index) {
+            currentPage = index;
+            render();
+        }
+
+        // Handle cover image upload
+        function handleCoverUpload(bookId, event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Find the book and update its image
+                    const book = bookList.find(b => b.id === bookId);
+                    if (book) {
+                        book.image = e.target.result;
+                        render();
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Render functions
+        function render() {
+            switch (currentView) {
+                case 'home':
+                    renderHome();
+                    break;
+                case 'book':
+                    renderBook();
+                    break;
+                case 'chapter':
+                    renderChapter();
+                    break;
+                case 'bookmarks':
+                    renderBookmarks();
+                    break;
+                case 'history':
+                    renderHistory();
+                    break;
+                default:
+                    renderHome();
+            }
+        }
+
+        // Render home view
+        function renderHome() {
+            // Filter and sort books based on current view mode and filters
+            let filteredBooks = [...bookList];
+            
+            // Apply search filter
+            if (searchQuery.trim()) {
+                filteredBooks = filteredBooks.filter(book => 
+                    book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    book.description.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            }
+            
+            // Apply genre filter
+            if (filterGenre) {
+                filteredBooks = filteredBooks.filter(book => book.genre === filterGenre);
+            }
+            
+            // Apply type filter
+            if (filterType !== 'All') {
+                filteredBooks = filteredBooks.filter(book => book.type === filterType);
+            }
+            
+            // Sort based on view mode
+            filteredBooks.sort((a, b) => {
+                switch (viewMode) {
+                    case 'latest':
+                        return new Date(b.addedDate) - new Date(a.addedDate);
+                    case 'popular':
+                        return b.views - a.views;
+                    case 'all':
+                        return a.title.localeCompare(b.title);
+                    default:
+                        return 0;
+                }
+            });
+            
+            // Build the HTML string
+            let html = `<!-- Header -->
+            <header class="bg-white shadow-sm border-b">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-blue-600 rounded text-white flex items-center justify-center font-bold">X</div>
+                                    <span class="ml-2 text-xl font-bold">X-5 Library</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-6">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center">
+                                    <img src="https://placehold.co/20x20/ff0000/ffffff?text=T" alt="Textbook" class="w-5 h-5" />
+                                    <span class="ml-1 text-sm font-medium">Textbook</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <img src="https://placehold.co/20x20/0000ff/ffffff?text=N" alt="Novel" class="w-5 h-5" />
+                                    <span class="ml-1 text-sm font-medium">Novel</span>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    placeholder="Cari buku..." 
+                                    value="${searchQuery}"
+                                    oninput="handleSearchInput(this.value)"
+                                    onkeypress="handleSearchKeyPress(event)"
+                                    class="border border-gray-300 rounded-full px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Navigation -->
+            <nav class="bg-white border-b">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex space-x-8 overflow-x-auto">
+                        ${['Beranda', 'Terbaru', 'Populer', 'Daftar Buku', 'Pelajaran', 'Fiksi', 'Non-Fiksi', 'Baru'].map(item => {
+                            let onclickHandler = '';
+                            let isActive = false;
+                            
+                            switch (item) {
+                                case 'Beranda':
+                                case 'Terbaru':
+                                    onclickHandler = 'setViewMode(\'latest\')';
+                                    isActive = viewMode === 'latest';
+                                    break;
+                                case 'Populer':
+                                    onclickHandler = 'setViewMode(\'popular\')';
+                                    isActive = viewMode === 'popular';
+                                    break;
+                                case 'Daftar Buku':
+                                    onclickHandler = 'setViewMode(\'all\')';
+                                    isActive = viewMode === 'all';
+                                    break;
+                                case 'Pelajaran':
+                                    onclickHandler = 'setFilterGenre(\'Pelajaran\')';
+                                    isActive = filterGenre === 'Pelajaran';
+                                    break;
+                                case 'Fiksi':
+                                    onclickHandler = 'setFilterGenre(\'Fiksi\')';
+                                    isActive = filterGenre === 'Fiksi';
+                                    break;
+                                case 'Non-Fiksi':
+                                    onclickHandler = 'setFilterGenre(\'Non-Fiksi\')';
+                                    isActive = filterGenre === 'Non-Fiksi';
+                                    break;
+                                case 'Baru':
+                                    onclickHandler = 'setViewMode(\'latest\')';
+                                    isActive = false;
+                                    break;
+                            }
+                            
+                            return `<button 
+                                onclick="${onclickHandler}"
+                                class="nav-button whitespace-nowrap py-4 px-2 border-b-2 font-medium text-sm ${isActive ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+                            >
+                                ${item}
+                            </button>`;
+                        }).join('')}
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+                    <h2 class="text-xl font-semibold mb-6">`;
+                    
+            // Add title based on view mode
+            if (viewMode === 'latest') {
+                html += 'Buku Terbaru';
+            } else if (viewMode === 'popular') {
+                html += 'Buku Paling Populer';
+            } else {
+                html += 'Semua Buku';
+            }
+            
+            html += `</h2>
+                    <div class="flex flex-wrap gap-4 mb-6">
+                        <select 
+                            value="${filterType}" 
+                            onchange="setFilterType(this.value)"
+                            class="border border-gray-300 rounded px-3 py-2"
+                        >
+                            <option value="All">Semua Tipe</option>
+                            <option value="Textbook">Textbook</option>
+                            <option value="Novel">Novel</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        ${filteredBooks.map(book => {
+                            return `<div class="border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow book-card" onclick="handleBookClick(${book.id})">
+                                <div class="relative">
+                                    <img src="${book.image}" alt="${book.title}" class="w-full h-48 object-cover" />
+                                    <div class="absolute top-2 left-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
+                                        ${book.type}
+                                    </div>
+                                    <div class="absolute top-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                                        ${viewMode === 'popular' ? `${book.views.toLocaleString()}x` : 'UP 1'}
+                                    </div>
+                                </div>
+                                <div class="p-4">
+                                    <h3 class="font-bold text-lg">${book.title}</h3>
+                                    <div class="text-sm text-gray-600 mb-2">
+                                        <span>${book.chapters}rb x • ${book.status}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-700 mb-4">${book.description}</p>
+                                    <div class="flex items-center justify-between text-sm text-gray-600">
+                                        <span>Awal: ${book.firstChapter}</span>
+                                        <span>Terbaru: ${book.latestChapter}</span>
+                                    </div>
+                                    <div class="mt-2 flex flex-wrap gap-1">
+                                        ${book.tags.map(tag => `<span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">${tag}</span>`).join('')}
+                                    </div>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="bg-white border-t">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Tentang Kami</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Tentang X-5 Library</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Karir</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Kontak</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Blog</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Bantuan</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Pusat Bantuan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Instruksi</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Syarat & Ketentuan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Kebijakan Privasi</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Layanan</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Berlangganan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Donasi</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Partner</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">API</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Ikuti Kami</h3>
+                            <div class="flex space-x-4">
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.088.636-1.338-2.665-.305-5.467-1.334-5.467-5.931 0-1.093.469-1.988 1.029-2.688-.124-.303-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-8 border-t flex flex-col md:flex-row justify-between items-center">
+                        <div class="flex space-x-6 mb-4 md:mb-0">
+                            <button onclick="setCurrentView('bookmarks')" class="flex flex-col items-center footer-button">
+                                <div class="w-8 h-8 bg-blue-600 rounded text-white flex items-center justify-center font-bold mb-1">B</div>
+                                <span class="text-sm">Bookmark</span>
+                            </button>
+                            <button onclick="setCurrentView('history')" class="flex flex-col items-center footer-button">
+                                <div class="w-8 h-8 bg-blue-600 rounded text-white flex items-center justify-center font-bold mb-1">H</div>
+                                <span class="text-sm">Histori</span>
+                            </button>
+                        </div>
+                        <div class="mt-8 text-center text-sm text-gray-600">
+                            <p>Copyright @ X-5 Library. All right reserved.</p>
+                            <p class="mt-2">Baca Buku| Baca Textbook| Baca Novel| DMCA| Terms of Usage| Privacy Policy| Contact Us</p>
+                        </div>
+                    </div>
+                </div>
+            </footer>`;
+
+            app.innerHTML = html;
+        }
+
+        // Render book view
+        function renderBook() {
+            const isBookmarked = bookmarks.includes(selectedBook.id);
+            let html = `<!-- Header -->
+            <header class="bg-white shadow-sm border-b">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <button 
+                            onclick="handleBackToHome()" 
+                            class="flex items-center text-blue-600 hover:text-blue-800"
+                        >
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Beranda
+                        </button>
+                        <div class="flex items-center space-x-6">
+                            <div class="flex items-center">
+                                <img src="https://placehold.co/20x20/ff0000/ffffff?text=T" alt="Textbook" class="w-5 h-5" />
+                                <span class="ml-1 text-sm font-medium">Textbook</span>
+                            </div>
+                            <div class="flex items-center">
+                                <img src="https://placehold.co/20x20/0000ff/ffffff?text=N" alt="Novel" class="w-5 h-5" />
+                                <span class="ml-1 text-sm font-medium">Novel</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="relative">
+                        <div class="cover-upload">
+                            <img src="${selectedBook.image}" alt="${selectedBook.title}" class="w-full h-64 object-cover" />
+                            <div class="upload-overlay">
+                                <div class="upload-icon">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <input 
+                                type="file" 
+                                accept="image/*" 
+                                onchange="handleCoverUpload(${selectedBook.id}, event)"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                        </div>
+                        <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                            <div class="text-white text-center">
+                                <h1 class="text-2xl font-bold">${selectedBook.title}</h1>
+                                <p class="text-sm mt-1">${selectedBook.genre}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex flex-wrap gap-4 mb-6">
+                            <button 
+                                onclick="handleBookmark(${selectedBook.id})" 
+                                class="px-4 py-2 rounded text-sm font-medium ${isBookmarked ? 'bg-red-600 text-white' : 'bg-blue-600 text-white'} hover:bg-opacity-90 transition-colors"
+                            >
+                                ${isBookmarked ? 'Hapus Bookmark' : 'Tambahkan Bookmark'}
+                            </button>
+                            <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 transition-colors">Baca Nanti</button>
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">+ Koleksi Baru</button>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-6">
+                            ${selectedBook.description}
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            <div>
+                                <h2 class="font-bold text-lg mb-4">Informasi Buku</h2>
+                                <table class="w-full border-collapse">
+                                    <tbody>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Judul Buku</td>
+                                            <td class="py-2 px-4 border">${selectedBook.title}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Jenis Buku</td>
+                                            <td class="py-2 px-4 border">${selectedBook.type}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Genre</td>
+                                            <td class="py-2 px-4 border">${selectedBook.genre}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Penulis</td>
+                                            <td class="py-2 px-4 border">${selectedBook.author || 'Tidak diketahui'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Tahun Terbit</td>
+                                            <td class="py-2 px-4 border">${selectedBook.publicationYear || 'Tidak diketahui'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Penerbit</td>
+                                            <td class="py-2 px-4 border">${selectedBook.publisher || 'Tidak diketahui'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Bahasa</td>
+                                            <td class="py-2 px-4 border">${selectedBook.language || 'Tidak diketahui'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Jumlah Halaman</td>
+                                            <td class="py-2 px-4 border">${selectedBook.totalPages || 'Tidak diketahui'}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div>
+                                <h2 class="font-bold text-lg mb-4">Detail</h2>
+                                <table class="w-full border-collapse">
+                                    <tbody>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Status</td>
+                                            <td class="py-2 px-4 border">${selectedBook.status}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Jumlah Bab</td>
+                                            <td class="py-2 px-4 border">${selectedBook.chapters}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Ditambahkan</td>
+                                            <td class="py-2 px-4 border">${new Date(selectedBook.addedDate).toLocaleDateString()}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Dilihat</td>
+                                            <td class="py-2 px-4 border">${selectedBook.views.toLocaleString()}x</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Rating</td>
+                                            <td class="py-2 px-4 border">${selectedBook.rating || 'Belum dinilai'}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-4 border">Tags</td>
+                                            <td class="py-2 px-4 border">${selectedBook.tags.join(', ')}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <h2 class="font-bold text-lg mb-6">Daftar Bab</h2>
+                        <div class="space-y-3">
+                            ${chapters.filter(chapter => chapter.bookId === selectedBook.id).map(chapter => {
+                                return `<div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold">${chapter.title}</h3>
+                                            <p class="text-sm text-gray-600 mt-1">Diterbitkan: ${chapter.date} • ${chapter.views.toLocaleString()}x dibaca</p>
+                                        </div>
+                                        <button 
+                                            onclick="handleChapterClick(${chapter.id})"
+                                            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 ml-4"
+                                        >
+                                            Baca
+                                        </button>
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="bg-white border-t">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Tentang Kami</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Tentang X-5 Library</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Karir</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Kontak</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Blog</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Bantuan</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Pusat Bantuan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Instruksi</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Syarat & Ketentuan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Kebijakan Privasi</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Layanan</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Berlangganan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Donasi</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Partner</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">API</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Ikuti Kami</h3>
+                            <div class="flex space-x-4">
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.088.636-1.338-2.665-.305-5.467-1.334-5.467-5.931 0-1.093.469-1.988 1.029-2.688-.124-.303-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-8 border-t flex flex-col md:flex-row justify-between items-center">
+                        <div class="flex space-x-6 mb-4 md:mb-0">
+                            <button onclick="setCurrentView('bookmarks')" class="flex flex-col items-center footer-button">
+                                <div class="w-8 h-8 bg-blue-600 rounded text-white flex items-center justify-center font-bold mb-1">B</div>
+                                <span class="text-sm">Bookmark</span>
+                            </button>
+                            <button onclick="setCurrentView('history')" class="flex flex-col items-center footer-button">
+                                <div class="w-8 h-8 bg-blue-600 rounded text-white flex items-center justify-center font-bold mb-1">H</div>
+                                <span class="text-sm">Histori</span>
+                            </button>
+                        </div>
+                        <div class="mt-8 text-center text-sm text-gray-600">
+                            <p>Copyright @ X-5 Library. All right reserved.</p>
+                            <p class="mt-2">Baca Buku| Baca Textbook| Baca Novel| DMCA| Terms of Usage| Privacy Policy| Contact Us</p>
+                        </div>
+                    </div>
+                </div>
+            </footer>`;
+
+            app.innerHTML = html;
+        }
+
+        // Render chapter view
+        function renderChapter() {
+            let html = `<!-- Header -->
+            <header class="bg-white shadow-sm border-b">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <button 
+                            onclick="handleBackToBook()" 
+                            class="flex items-center text-blue-600 hover:text-blue-800"
+                        >
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Kembali ke Buku
+                        </button>
+                        <div class="flex items-center space-x-6">
+                            <div class="flex items-center">
+                                <img src="https://placehold.co/20x20/ff0000/ffffff?text=T" alt="Textbook" class="w-5 h-5" />
+                                <span class="ml-1 text-sm font-medium">Textbook</span>
+                            </div>
+                            <div class="flex items-center">
+                                <img src="https://placehold.co/20x20/0000ff/ffffff?text=N" alt="Novel" class="w-5 h-5" />
+                                <span class="ml-1 text-sm font-medium">Novel</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+                    <div class="text-center mb-8">
+                        <h1 class="text-2xl font-bold">${selectedChapter.title}</h1>
+                        <p class="text-gray-600 mt-2">Dari buku: ${selectedBook.title}</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-lg mb-8">
+                        <table class="w-full border-collapse">
+                            <tbody>
+                                <tr>
+                                    <td class="py-2 px-4 border">Judul</td>
+                                    <td class="py-2 px-4 border">${selectedBook.title} ${selectedChapter.title}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-4 border">Tanggal Rilis</td>
+                                    <td class="py-2 px-4 border">${selectedChapter.date}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-4 border">Dibaca</td>
+                                    <td class="py-2 px-4 border">${selectedChapter.views.toLocaleString()}x</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 px-4 border">Buku</td>
+                                    <td class="py-2 px-4 border">${selectedBook.title}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <div class="pdf-page">
+                            <div class="pdf-controls p-4 border-b">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <button 
+                                            onclick="handlePrevPage()"
+                                            class="bg-gray-200 text-gray-800 p-2 rounded hover:bg-gray-300 disabled:opacity-50"
+                                            ${currentPage === 0 ? 'disabled' : ''}
+                                        >
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                            </svg>
+                                        </button>
+                                        <span class="text-sm font-medium">${currentPage + 1} / ${currentPdfContent.length}</span>
+                                        <button 
+                                            onclick="handleNextPage()"
+                                            class="bg-gray-200 text-gray-800 p-2 rounded hover:bg-gray-300 disabled:opacity-50"
+                                            ${currentPage === currentPdfContent.length - 1 ? 'disabled' : ''}
+                                        >
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm">Halaman:</span>
+                                        <select 
+                                            value="${currentPage}" 
+                                            onchange="handleGoToPage(parseInt(this.value))"
+                                            class="border border-gray-300 rounded px-2 py-1 text-sm"
+                                        >
+                                            ${currentPdfContent.map((_, index) => 
+                                                `<option value="${index}">Halaman ${index + 1}</option>`
+                                            ).join('')}
+                                        </select>
+                                        <button 
+                                            onclick="setCurrentView('book')"
+                                            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 ml-4"
+                                        >
+                                            Kembali ke Daftar Bab
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="page-container">
+                                <div class="bg-white p-6 rounded shadow">
+                                    <p class="text-lg leading-relaxed whitespace-pre-line">
+                                        ${currentPdfContent[currentPage]}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="bg-white border-t">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Tentang Kami</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Tentang X-5 Library</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Karir</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Kontak</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Blog</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Bantuan</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Pusat Bantuan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Instruksi</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Syarat & Ketentuan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Kebijakan Privasi</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Layanan</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Berlangganan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Donasi</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Partner</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">API</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Ikuti Kami</h3>
+                            <div class="flex space-x-4">
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.088.636-1.338-2.665-.305-5.467-1.334-5.467-5.931 0-1.093.469-1.988 1.029-2.688-.124-.303-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-8 border-t flex flex-col md:flex-row justify-between items-center">
+                        <div class="flex space-x-6 mb-4 md:mb-0">
+                            <button onclick="setCurrentView('bookmarks')" class="flex flex-col items-center footer-button">
+                                <div class="w-8 h-8 bg-blue-600 rounded text-white flex items-center justify-center font-bold mb-1">B</div>
+                                <span class="text-sm">Bookmark</span>
+                            </button>
+                            <button onclick="setCurrentView('history')" class="flex flex-col items-center footer-button">
+                                <div class="w-8 h-8 bg-blue-600 rounded text-white flex items-center justify-center font-bold mb-1">H</div>
+                                <span class="text-sm">Histori</span>
+                            </button>
+                        </div>
+                        <div class="mt-8 text-center text-sm text-gray-600">
+                            <p>Copyright @ X-5 Library. All right reserved.</p>
+                            <p class="mt-2">Baca Buku| Baca Textbook| Baca Novel| DMCA| Terms of Usage| Privacy Policy| Contact Us</p>
+                        </div>
+                    </div>
+                </div>
+            </footer>`;
+
+            app.innerHTML = html;
+        }
+
+        // Render bookmarks view
+        function renderBookmarks() {
+            let html = `<!-- Header -->
+            <header class="bg-white shadow-sm border-b">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <button 
+                            onclick="setCurrentView('home')" 
+                            class="flex items-center text-blue-600 hover:text-blue-800"
+                        >
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Beranda
+                        </button>
+                        <div class="flex items-center space-x-6">
+                            <div class="flex items-center">
+                                <img src="https://placehold.co/20x20/ff0000/ffffff?text=T" alt="Textbook" class="w-5 h-5" />
+                                <span class="ml-1 text-sm font-medium">Textbook</span>
+                            </div>
+                            <div class="flex items-center">
+                                <img src="https://placehold.co/20x20/0000ff/ffffff?text=N" alt="Novel" class="w-5 h-5" />
+                                <span class="ml-1 text-sm font-medium">Novel</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+                    <h2 class="text-xl font-semibold mb-6">Bookmark Browser</h2>
+                    <div class="space-y-4">
+                        ${bookmarks.length === 0 ? 
+                            `<div class="text-center py-8">
+                                <p class="text-gray-600">Tidak ada buku yang ditambahkan ke bookmark</p>
+                            </div>` : 
+                            bookmarks.map(bookId => {
+                                const book = bookList.find(b => b.id === bookId);
+                                if (!book) return '';
+                                return `<div class="border border-gray-200 rounded-lg p-4 flex items-start">
+                                    <img src="${book.image}" alt="${book.title}" class="w-20 h-28 object-cover rounded" />
+                                    <div class="ml-4 flex-1">
+                                        <h3 class="font-bold text-lg">${book.title}</h3>
+                                        <p class="text-sm text-gray-600 mt-1">${book.genre} • ${book.type}</p>
+                                        <p class="text-sm text-gray-700 mt-2">${book.description}</p>
+                                        <div class="mt-3 flex space-x-2">
+                                            <button 
+                                                onclick="handleBookClick(${book.id})"
+                                                class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                            >
+                                                Lihat Detail
+                                            </button>
+                                            <button 
+                                                onclick="removeBookmark(${book.id})"
+                                                class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                                            >
+                                                Hapus Bookmark
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            }).join('')
+                        }
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="bg-white border-t">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Tentang Kami</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Tentang X-5 Library</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Karir</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Kontak</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Blog</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Bantuan</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Pusat Bantuan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Instruksi</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Syarat & Ketentuan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Kebijakan Privasi</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Layanan</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Berlangganan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Donasi</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Partner</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">API</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Ikuti Kami</h3>
+                            <div class="flex space-x-4">
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.088.636-1.338-2.665-.305-5.467-1.334-5.467-5.931 0-1.093.469-1.988 1.029-2.688-.124-.303-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-8 border-t flex flex-col md:flex-row justify-between items-center">
+                        <div class="flex space-x-6 mb-4 md:mb-0">
+                            <button onclick="setCurrentView('bookmarks')" class="flex flex-col items-center footer-button">
+                                <div class="w-8 h-8 bg-blue-600 rounded text-white flex items-center justify-center font-bold mb-1">B</div>
+                                <span class="text-sm">Bookmark</span>
+                            </button>
+                            <button onclick="setCurrentView('history')" class="flex flex-col items-center footer-button">
+                                <div class="w-8 h-8 bg-blue-600 rounded text-white flex items-center justify-center font-bold mb-1">H</div>
+                                <span class="text-sm">Histori</span>
+                            </button>
+                        </div>
+                        <div class="mt-8 text-center text-sm text-gray-600">
+                            <p>Copyright @ X-5 Library. All right reserved.</p>
+                            <p class="mt-2">Baca Buku| Baca Textbook| Baca Novel| DMCA| Terms of Usage| Privacy Policy| Contact Us</p>
+                        </div>
+                    </div>
+                </div>
+            </footer>`;
+
+            app.innerHTML = html;
+        }
+
+        // Render history view
+        function renderHistory() {
+            let html = `<!-- Header -->
+            <header class="bg-white shadow-sm border-b">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <button 
+                            onclick="setCurrentView('home')" 
+                            class="flex items-center text-blue-600 hover:text-blue-800"
+                        >
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Beranda
+                        </button>
+                        <div class="flex items-center space-x-6">
+                            <div class="flex items-center">
+                                <img src="https://placehold.co/20x20/ff0000/ffffff?text=T" alt="Textbook" class="w-5 h-5" />
+                                <span class="ml-1 text-sm font-medium">Textbook</span>
+                            </div>
+                            <div class="flex items-center">
+                                <img src="https://placehold.co/20x20/0000ff/ffffff?text=N" alt="Novel" class="w-5 h-5" />
+                                <span class="ml-1 text-sm font-medium">Novel</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+                    <h2 class="text-xl font-semibold mb-6">Riwayat Bacaan</h2>
+                    <div class="space-y-4">
+                        ${history.length === 0 ? 
+                            `<div class="text-center py-8">
+                                <p class="text-gray-600">Belum ada riwayat bacaan</p>
+                            </div>` : 
+                            history.map(item => {
+                                const book = bookList.find(b => b.id === item.bookId);
+                                if (!book) return '';
+                                return `<div class="border border-gray-200 rounded-lg p-4 flex items-start">
+                                    <img src="${book.image}" alt="${book.title}" class="w-20 h-28 object-cover rounded" />
+                                    <div class="ml-4 flex-1">
+                                        <h3 class="font-bold text-lg">${book.title}</h3>
+                                        <p class="text-sm text-gray-600 mt-1">${item.chapter}</p>
+                                        <div class="mt-2">
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="bg-blue-600 h-2 rounded-full" style="width: ${item.progress}"></div>
+                                            </div>
+                                            <p class="text-sm text-gray-600 mt-1">${item.lastRead}</p>
+                                        </div>
+                                        <div class="mt-3 flex space-x-2">
+                                            <button 
+                                                onclick="handleBookClick(${book.id})"
+                                                class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                            >
+                                                Lanjutkan Membaca
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            }).join('')
+                        }
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="bg-white border-t">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Tentang Kami</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Tentang X-5 Library</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Karir</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Kontak</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Blog</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Bantuan</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Pusat Bantuan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Instruksi</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Syarat & Ketentuan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Kebijakan Privasi</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Layanan</h3>
+                            <ul class="space-y-2">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Berlangganan</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Donasi</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Partner</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">API</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-4">Ikuti Kami</h3>
+                            <div class="flex space-x-4">
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.088.636-1.338-2.665-.305-5.467-1.334-5.467-5.931 0-1.093.469-1.988 1.029-2.688-.124-.303-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-8 border-t flex flex-col md:flex-row justify-between items-center">
+                        <div class="flex space-x-6 mb-4 md:mb-0">
+                            <button onclick="setCurrentView('bookmarks')" class="flex flex-col items-center footer-button">
+                                <div class="w-8 h-8 bg-blue-600 rounded text-white flex items-center justify-center font-bold mb-1">B</div>
+                                <span class="text-sm">Bookmark</span>
+                            </button>
+                            <button onclick="setCurrentView('history')" class="flex flex-col items-center footer-button">
+                                <div class="w-8 h-8 bg-blue-600 rounded text-white flex items-center justify-center font-bold mb-1">H</div>
+                                <span class="text-sm">Histori</span>
+                            </button>
+                        </div>
+                        <div class="mt-8 text-center text-sm text-gray-600">
+                            <p>Copyright @ X-5 Library. All right reserved.</p>
+                            <p class="mt-2">Baca Buku| Baca Textbook| Baca Novel| DMCA| Terms of Usage| Privacy Policy| Contact Us</p>
+                        </div>
+                    </div>
+                </div>
+            </footer>`;
+
+            app.innerHTML = html;
+        }
+
+        // Initialize the app
+        render();
+    </script>
+</body>
+</html>
